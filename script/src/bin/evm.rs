@@ -8,29 +8,28 @@
 
 use alloy_sol_types::SolType;
 use clap::Parser;
-use fibonacci_lib::PublicValuesStruct;
+use sqlparser_sp1_lib::PublicValuesStruct;
 use serde::{Deserialize, Serialize};
 use sp1_sdk::{HashableKey, ProverClient, SP1ProofWithPublicValues, SP1Stdin, SP1VerifyingKey};
 use std::path::PathBuf;
 
 /// The ELF (executable and linkable format) file for the Succinct RISC-V zkVM.
-pub const FIBONACCI_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
+pub const SQLPARSER_ELF: &[u8] = include_bytes!("../../../elf/riscv32im-succinct-zkvm-elf");
 
 /// The arguments for the EVM command.
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct EVMArgs {
-    #[clap(long, default_value = "20")]
-    n: u32,
+    #[clap(long, default_value = "select * from cats where name = 'Chloe'")]
+    sql: String,
 }
 
 /// A fixture that can be used to test the verification of SP1 zkVM proofs inside Solidity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SP1FibonacciProofFixture {
-    a: u32,
-    b: u32,
-    n: u32,
+struct SP1SqlParserProofFixture {
+    sql: String,
+    ast: String,
     vkey: String,
     public_values: String,
     proof: String,
@@ -47,13 +46,13 @@ fn main() {
     let client = ProverClient::new();
 
     // Setup the program.
-    let (pk, vk) = client.setup(FIBONACCI_ELF);
+    let (pk, vk) = client.setup(SQLPARSER_ELF);
 
     // Setup the inputs.
     let mut stdin = SP1Stdin::new();
-    stdin.write(&args.n);
+    stdin.write(&args.sql);
 
-    println!("n: {}", args.n);
+    println!("sql: {}", args.sql);
 
     // Generate the proof.
     let proof = client
@@ -69,13 +68,15 @@ fn main() {
 fn create_plonk_fixture(proof: &SP1ProofWithPublicValues, vk: &SP1VerifyingKey) {
     // Deserialize the public values.
     let bytes = proof.public_values.as_slice();
-    let PublicValuesStruct { n, a, b } = PublicValuesStruct::abi_decode(bytes, false).unwrap();
+    let decoded = PublicValuesStruct::abi_decode(bytes, false).unwrap();
+    let PublicValuesStruct { sql: sql_bytes, ast: ast_bytes } = decoded;
+    let sql = std::str::from_utf8(&sql_bytes.0).unwrap();
+    let ast = std::str::from_utf8(&ast_bytes.0).unwrap();
 
     // Create the testing fixture so we can test things end-to-end.
-    let fixture = SP1FibonacciProofFixture {
-        a,
-        b,
-        n,
+    let fixture = SP1SqlParserProofFixture {
+        sql,
+        ast,
         vkey: vk.bytes32().to_string(),
         public_values: format!("0x{}", hex::encode(bytes)),
         proof: format!("0x{}", hex::encode(proof.bytes())),

@@ -4,16 +4,15 @@ pragma solidity ^0.8.20;
 import {ISP1Verifier} from "@sp1-contracts/ISP1Verifier.sol";
 
 struct PublicValuesStruct {
-    uint32 n;
-    uint32 a;
-    uint32 b;
+    bytes sql;
+    bytes ast;
 }
 
 /// @title Fibonacci.
 /// @author Succinct Labs
-/// @notice This contract implements a simple example of verifying the proof of a computing a
-///         fibonacci number.
-contract Fibonacci {
+/// @notice This contract implements a simple example of verifying the proof of a parsing a
+///         query.
+contract SqlParser {
     /// @notice The address of the SP1 verifier contract.
     /// @dev This can either be a specific SP1Verifier for a specific version, or the
     ///      SP1VerifierGateway which can be used to verify proofs for any version of SP1.
@@ -21,12 +20,12 @@ contract Fibonacci {
     ///      https://github.com/succinctlabs/sp1-contracts/tree/main/contracts/deployments
     address public verifier;
 
-    /// @notice The verification key for the fibonacci program.
-    bytes32 public fibonacciProgramVKey;
+    /// @notice The verification key for the sqlparser program.
+    bytes32 public sqlParserProgramVKey;
 
-    constructor(address _verifier, bytes32 _fibonacciProgramVKey) {
+    constructor(address _verifier, bytes32 _sqlParserProgramVKey) {
         verifier = _verifier;
-        fibonacciProgramVKey = _fibonacciProgramVKey;
+        fibonacciProgramVKey = _sqlParserProgramVKey;
     }
 
     /// @notice The entrypoint for verifying the proof of a fibonacci number.

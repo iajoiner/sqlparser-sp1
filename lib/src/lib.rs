@@ -1,22 +1,17 @@
 use alloy_sol_types::sol;
+use sqlparser::{dialect::GenericDialect, parser::Parser};
 
 sol! {
     /// The public values encoded as a struct that can be easily deserialized inside Solidity.
     struct PublicValuesStruct {
-        uint32 n;
-        uint32 a;
-        uint32 b;
+        bytes sql;
+        bytes ast;
     }
 }
 
-/// Compute the n'th fibonacci number (wrapping around on overflows), using normal Rust code.
-pub fn fibonacci(n: u32) -> (u32, u32) {
-    let mut a = 0u32;
-    let mut b = 1u32;
-    for _ in 0..n {
-        let c = a.wrapping_add(b);
-        a = b;
-        b = c;
-    }
-    (a, b)
+/// Parse SQL using normal Rust code.
+pub fn parse(sql: &str) -> String {
+    let dialect = GenericDialect {}; // or AnsiDialect, or your own dialect ...
+    let ast = Parser::parse_sql(&dialect, sql).unwrap();
+    format!("{:?}", ast)
 }

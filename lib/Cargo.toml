@@ -1,7 +1,8 @@
 [package]
-name = "fibonacci-lib"
+name = "sqlparser-sp1-lib"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 alloy-sol-types = { workspace = true }
+sqlparser = "0.49.0"
