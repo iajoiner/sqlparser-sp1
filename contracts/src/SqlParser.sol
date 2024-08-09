@@ -25,19 +25,19 @@ contract SqlParser {
 
     constructor(address _verifier, bytes32 _sqlParserProgramVKey) {
         verifier = _verifier;
-        fibonacciProgramVKey = _sqlParserProgramVKey;
+        sqlParserProgramVKey = _sqlParserProgramVKey;
     }
 
-    /// @notice The entrypoint for verifying the proof of a fibonacci number.
+    /// @notice The entrypoint for verifying the proof of a SQL query.
     /// @param _proofBytes The encoded proof.
     /// @param _publicValues The encoded public values.
-    function verifyFibonacciProof(bytes calldata _publicValues, bytes calldata _proofBytes)
+    function verifySqlParserProof(bytes calldata _publicValues, bytes calldata _proofBytes)
         public
         view
-        returns (uint32, uint32, uint32)
+        returns (bytes, bytes)
     {
         ISP1Verifier(verifier).verifyProof(fibonacciProgramVKey, _publicValues, _proofBytes);
         PublicValuesStruct memory publicValues = abi.decode(_publicValues, (PublicValuesStruct));
-        return (publicValues.n, publicValues.a, publicValues.b);
+        return (publicValues.sql, publicValues.ast);
     }
 }
